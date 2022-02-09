@@ -27,3 +27,9 @@ $("[data-checkboxes]").each(function () {
     }
   });
 });
+
+$("#post_table").dataTable({
+  "columnDefs": [
+    { "sortable": false, "targets": [2, 3] }
+  ]
+});

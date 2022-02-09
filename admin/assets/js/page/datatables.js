@@ -10,4 +10,3 @@ $('#save-stage').DataTable({
   "scrollX": true,
   stateSave: true
 });
-

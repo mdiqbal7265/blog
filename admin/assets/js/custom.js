@@ -132,18 +132,143 @@ $(document).ready(function () {
   });
 
   // Ctegory Update Cancle
-  $("#update_cancle").click(function(e){
+  $("#update_cancle").click(function (e) {
     e.preventDefault();
     $("#add_card").show();
     $("#edit_card").hide();
   });
 
   // Refresh Category Content
-  $("#refresh").click(function(){
+  $("#refresh").click(function () {
     location.reload();
   });
 
+  // Add Post Ajax Request
+  $("#add_post_form").submit(function (e) {
+    e.preventDefault();
+    $("#add_post_btn").val("Please Wait...");
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      processData: false,
+      contentType: false,
+      cache: false,
+      data: new FormData(this),
+      success: function (response) {
+        $("#add_post_btn").val("Add Post");
+        $("#add_post_form")[0].reset();
+        iziToast.success({
+          title: "Added!",
+          message: "Post Added Successfully!",
+          position: "topRight"
+        });
+        window.setTimeout(function () {
+          window.location = "post.php";
+        }, 2000);
+      }
+    });
+  });
 
+  // Fetch All Post
+
+  fetchPost();
+  function fetchPost() {
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      data: { fetchPost: "fetchPost" },
+      success: function (response) {
+        $("#post_body").html(response);
+      }
+    });
+  }
+  $("#all_post").click(function () {
+    fetchPost();
+    $(this).addClass("active");
+    $("#trash_post").removeClass("active");
+    $("#draft_post").removeClass("active");
+    $("#pending_post").removeClass("active");
+  });
+
+  // Fetch trash post
+
+  $("#trash_post").click(function () {
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      data: { action: "fetchTrashData" },
+      success: function (response) {
+        $("#post_body").html(response);
+        $("#trash_post").addClass("active");
+        $("#all_post").removeClass("active");
+        $("#draft_post").removeClass("active");
+        $("#pending_post").removeClass("active");
+      }
+    });
+  });
+
+  // Fetch Draft Post
+  $("#draft_post").click(function () {
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      data: { action: "fetchDraftData" },
+      success: function (response) {
+        $("#post_body").html(response);
+        $("#draft_post").addClass("active");
+        $("#trash_post").removeClass("active");
+        $("#all_post").removeClass("active");
+        $("#pending_post").removeClass("active");
+        // console.log(response);
+      }
+    });
+  });
+
+  // Fetch Pending Post
+  $("#pending_post").click(function () {
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      data: { action: "fetchPendingData" },
+      success: function (response) {
+        $("#post_body").html(response);
+        $("#pending_post").addClass("active");
+        $("#trash_post").removeClass("active");
+        $("#draft_post").removeClass("active");
+        $("#all_post").removeClass("active");
+        // console.log(response);
+      }
+    });
+  });
+
+  // Delete Post
+  $("body").on("click", ".dlt_post", function (e) {
+    e.preventDefault();
+    id = $(this).attr("id");
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this imaginary file!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true
+    }).then((willDelete) => {
+      if (willDelete) {
+        $.ajax({
+          type: "POST",
+          url: "../lib/admin.php",
+          data: { action: "delete_post", id: id },
+          success: function (response) {
+            swal("Poof! Your Post has been trashed!", {
+              icon: "success"
+            });
+            fetchPost();
+          }
+        });
+      } else {
+        swal("Your Post is safe!");
+      }
+    });
+  });
 
   /*****End */
 });
