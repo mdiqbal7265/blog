@@ -47,7 +47,8 @@
                         #
                       </th>
                       <th width="20%">Author</th>
-                      <th width="35%">Title</th>
+                      <th width="25%">Title</th>
+                      <th width="10%">Image</th>
                       <th width="10%">Category</th>
                       <th width="15%">Created At</th>
                       <th width="5%">Views</th>
@@ -55,7 +56,7 @@
                     </tr>
                   </thead>
                   <tbody id="post_body">
-                    
+
                   </tbody>
                 </table>
               </div>
@@ -65,6 +66,10 @@
       </div>
     </div>
   </section>
+
+
+
+
   <?php include 'include/setting_sidebar.php'; ?>
 </div>
 <?php include 'include/footer.php'; ?>

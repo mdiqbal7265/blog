@@ -104,7 +104,7 @@ class Database
             INNER JOIN category ON post.cat_id = category.id 
             INNER JOIN admin ON post.author_id = admin.id WHERE post.$column = :condition AND post.trash = :trash ORDER BY post.id DESC";
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute(['condition' => $condition,'trash' => $trash]);
+            $stmt->execute(['condition' => $condition, 'trash' => $trash]);
             $row = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return $row;
@@ -121,16 +121,26 @@ class Database
     }
 
     // Post Action
-    public function postAction($id, $type)
+    public function postAction($id, $column, $value="", $deleted = "")
     {
-        $sql = "UPDATE post SET trash = :trash WHERE id = :id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'trash' => $type,
-            'id' => $id
-        ]);
 
-        return true;
+
+        if ($deleted != null) {
+            $sql = "DELETE FROM post WHERE id = :id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(['id' => $id]);
+            return true;
+        } else {
+            $sql = "UPDATE post SET $column = :value WHERE id = :id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                'value' => $value,
+                'id' => $id
+            ]);
+            return true;
+        }
+
+        
     }
 
     // Post Count 
@@ -152,5 +162,46 @@ class Database
             $count = $stmt->rowCount();
             return $count;
         }
+    }
+
+    // fetch post by specific id
+    public function fetchPostById($id)
+    {
+        $sql = "SELECT * FROM post WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $id]);
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data;
+    }
+
+    // Update Post By Admin
+
+    public function update_post($title, $slug, $cat, $author, $content, $image, $tag, $status, $id)
+    {
+
+        $sql = "UPDATE post SET 
+            title = :title, 
+            slug = :slug, 
+            cat_id = :cat, 
+            author_id = :author, 
+            content= :content, 
+            image = :image, 
+            tag = :tag,
+            status = :status WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'title' => $title,
+            'slug' => $slug,
+            'cat' => $cat,
+            'author' => $author,
+            'content' => $content,
+            'image' => $image,
+            'tag' => $tag,
+            'status' => $status,
+            'id' => $id,
+        ]);
+        return true;
     }
 }

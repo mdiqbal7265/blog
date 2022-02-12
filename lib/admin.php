@@ -145,10 +145,15 @@ if (isset($_POST['fetchPost']) && $_POST['fetchPost'] == 'fetchPost') {
                             <div class="table-links">
                             <a href="../' . $value['slug'] . '">View</a>
                             <div class="bullet"></div>
-                            <a href="#">Edit</a>
+                            <a href="edit_post.php?id=' . $value['id'] . '&&action=edit_post" class="edit_post">Edit</a>
                             <div class="bullet"></div>
                             <a href="#" class="text-danger dlt_post" id="' . $value['id'] . '">Trash</a>
                             </div>
+                        </td>
+                        <td>
+                            <a href="#">
+                                <img alt="image" src="../assets/img/upload/' . $value['image'] . '" class="img-fluid img-thumbnail" width="80" data-toggle="title" title="">
+                            </a>
                         </td>
                         <td>
                             <a href="#">' . $value['category_name'] . '</a>
@@ -181,12 +186,16 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetchTrashData') {
                         <td>
                             ' . $value['title'] . '
                             <div class="table-links">
-                            <a href="../' . $value['slug'] . '">View</a>
-                            <div class="bullet"></div>
-                            <a href="#">Edit</a>
-                            <div class="bullet"></div>
-                            <a href="#" class="text-danger dlt_post" id="' . $value['id'] . '">Trash</a>
+                                <div class="bullet"></div>
+                                <a href="#" class="text-danger permanent_dlt_post" id="' . $value['id'] . '">Permanent Delete</a>
+                                <div class="bullet"></div>
+                                <a href="#" class="text-danger recover_post" id="' . $value['id'] . '">Recover Post</a>
                             </div>
+                        </td>
+                        <td>
+                            <a href="#">
+                                <img alt="image" src="../assets/img/upload/' . $value['image'] . '" class="img-fluid img-thumbnail" width="80" data-toggle="title" title="">
+                            </a>
                         </td>
                         <td>
                             <a href="#">' . $value['category_name'] . '</a>
@@ -219,12 +228,16 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetchDraftData') {
                         <td>
                             ' . $value['title'] . '
                             <div class="table-links">
-                            <a href="../' . $value['slug'] . '">View</a>
-                            <div class="bullet"></div>
-                            <a href="#">Edit</a>
                             <div class="bullet"></div>
                             <a href="#" class="text-danger dlt_post" id="' . $value['id'] . '">Trash</a>
+                            <div class="bullet"></div>
+                            <a href="#" class="text-danger make_publish" id="' . $value['id'] . '">Make Publish</a>
                             </div>
+                        </td>
+                        <td>
+                            <a href="#">
+                                <img alt="image" src="../assets/img/upload/' . $value['image'] . '" class="img-fluid img-thumbnail" width="80" data-toggle="title" title="">
+                            </a>
                         </td>
                         <td>
                             <a href="#">' . $value['category_name'] . '</a>
@@ -240,7 +253,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetchDraftData') {
     echo $output;
 }
 
-// Fetch Draft Post
+// Fetch Pending Post
 if (isset($_POST['action']) && $_POST['action'] == 'fetchPendingData') {
     $output = '';
     $post = $db->fetchPost('status', 'Pending', '0');
@@ -258,12 +271,16 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetchPendingData') {
                             <td>
                                 ' . $value['title'] . '
                                 <div class="table-links">
-                                <a href="../' . $value['slug'] . '">View</a>
-                                <div class="bullet"></div>
-                                <a href="#">Edit</a>
                                 <div class="bullet"></div>
                                 <a href="#" class="text-danger dlt_post" id="' . $value['id'] . '">Trash</a>
+                                <div class="bullet"></div>
+                                <a href="#" class="text-danger make_publish" id="' . $value['id'] . '">Make Publish</a>
                                 </div>
+                            </td>
+                            <td>
+                                <a href="#">
+                                    <img alt="image" src="../assets/img/upload/' . $value['image'] . '" class="img-fluid img-thumbnail" width="80" data-toggle="title" title="">
+                                </a>
                             </td>
                             <td>
                                 <a href="#">' . $value['category_name'] . '</a>
@@ -282,12 +299,68 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetchPendingData') {
     }
 }
 
+
+
+// Update Post By ajax Request
+if (isset($_FILES['update_post_image'])) {
+    $folder = '../assets/img/upload/';
+    $old_image = $_POST['old_image'];
+    $id = $_POST['post_id'];
+    if (isset($_FILES['update_post_image']['name']) && ($_FILES['update_post_image']['name'] != "")) {
+        $filename = time() . '-' . $_FILES['update_post_image']['name'];
+        $tmpname = $_FILES['update_post_image']['tmp_name'];
+        $upload_path = $folder . $filename;
+        if ($_POST['old_image']) {
+            unlink($folder . $_POST['old_image']);
+        }
+        move_uploaded_file($tmpname, $upload_path);
+    } else {
+        $filename = $old_image;
+    }
+
+    $tag = implode(',', $_POST['tags']);
+
+    $title = $helper->sanitize_data($_POST['title']);
+    $slug = $helper->genarate_slug($_POST['title']);
+    $cat_id = $helper->sanitize_data($_POST['category']);
+    $content = $helper->sanitize_data($_POST['content']);
+    $image = $filename;
+    $tag = $tag;
+    $status = $helper->sanitize_data($_POST['status']);
+    $author_id = $admin['id'];
+
+
+    $db->update_post($title, $slug, $cat_id, $author_id, $content, $image, $tag, $status, $id);
+}
+
+
 // Delete Post
 
 if (isset($_POST['action']) && $_POST['action'] == 'delete_post') {
     $id = $_POST['id'];
 
-    $db->postAction($id, 1);
+    $db->postAction($id,'trash', 1);
+}
+
+// Permanent Delete
+if (isset($_POST['action']) && $_POST['action'] == 'permanent_delete_post') {
+    $id = $_POST['id'];
+
+    $db->postAction($id, '','', 1);
+}
+
+// Recover post
+if (isset($_POST['action']) && $_POST['action'] == 'recover_post') {
+    $id = $_POST['id'];
+
+    $db->postAction($id,'trash', 0);
+}
+
+// Make Post Public
+if (isset($_POST['action']) && $_POST['action'] == 'publish_post') {
+    $id = $_POST['id'];
+
+    $db->postAction($id,'status','Publish');
 }
 
 // All Post Count

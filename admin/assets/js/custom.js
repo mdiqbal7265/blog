@@ -182,6 +182,7 @@ $(document).ready(function () {
       }
     });
   }
+
   $("#all_post").click(function () {
     fetchPost();
     $(this).addClass("active");
@@ -241,13 +242,40 @@ $(document).ready(function () {
     });
   });
 
+  // Update Post
+  $("#update_post_form").submit(function (e) {
+    e.preventDefault();
+    $("#update_post_btn").val("Please Wait...");
+    $.ajax({
+      type: "POST",
+      url: "../lib/admin.php",
+      processData: false,
+      contentType: false,
+      cache: false,
+      data: new FormData(this),
+      success: function (response) {
+        $("#update_post_btn").val("Update Post");
+        $("#update_post_form")[0].reset();
+        iziToast.success({
+          title: "Updated!",
+          message: "Post Updated Successfully!",
+          position: "topRight"
+        });
+        window.setTimeout(function () {
+          window.location = "post.php";
+        }, 2000);
+        // console.log(response);
+      }
+    });
+  });
+
   // Delete Post
   $("body").on("click", ".dlt_post", function (e) {
     e.preventDefault();
     id = $(this).attr("id");
     swal({
       title: "Are you sure?",
-      text: "Once deleted, you will not be able to recover this imaginary file!",
+      text: "Once deleted, you will be able to recover this imaginary file in the trash folder!",
       icon: "warning",
       buttons: true,
       dangerMode: true
@@ -266,6 +294,93 @@ $(document).ready(function () {
         });
       } else {
         swal("Your Post is safe!");
+      }
+    });
+  });
+
+  // Permanent Delete Post
+  $("body").on("click", ".permanent_dlt_post", function (e) {
+    e.preventDefault();
+    id = $(this).attr("id");
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this imaginary file!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true
+    }).then((willDelete) => {
+      if (willDelete) {
+        $.ajax({
+          type: "POST",
+          url: "../lib/admin.php",
+          data: { action: "permanent_delete_post", id: id },
+          success: function (response) {
+            swal("Poof! Your Post has been deleted successfully!", {
+              icon: "success"
+            });
+            fetchPost();
+          }
+        });
+      } else {
+        swal("Your Post is safe!");
+      }
+    });
+  });
+
+  // Recover Post
+  $("body").on("click", ".recover_post", function (e) {
+    e.preventDefault();
+    id = $(this).attr("id");
+    swal({
+      title: "Are you sure?",
+      text: "You want to recover your post?!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true
+    }).then((willDelete) => {
+      if (willDelete) {
+        $.ajax({
+          type: "POST",
+          url: "../lib/admin.php",
+          data: { action: "recover_post", id: id },
+          success: function (response) {
+            swal("Poof! Your Post has been recovered successfully!", {
+              icon: "success"
+            });
+            fetchPost();
+          }
+        });
+      } else {
+        swal("Your Post is not recovered!");
+      }
+    });
+  });
+
+  // Make Publish Post
+  $("body").on("click", ".make_publish", function (e) {
+    e.preventDefault();
+    id = $(this).attr("id");
+    swal({
+      title: "Are you sure?",
+      text: "You want to publish your post?!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true
+    }).then((willDelete) => {
+      if (willDelete) {
+        $.ajax({
+          type: "POST",
+          url: "../lib/admin.php",
+          data: { action: "publish_post", id: id },
+          success: function (response) {
+            swal("Poof! Your Post has been published successfully!", {
+              icon: "success"
+            });
+            fetchPost();
+          }
+        });
+      } else {
+        swal("Your Post is not published!");
       }
     });
   });
